@@ -1,0 +1,54 @@
+name: Godot Export
+description: Export Godot project for the web
+inputs:
+  godot_version:
+    description: Godot version to export the project with (e.g. 4.5.1)
+    required: true
+  godot_flavor:
+    description: Godot release flavor to export the project with (e.g. stable, beta1, rc2)
+    required: false
+    default: stable
+runs:
+  using: composite
+  steps:
+    - name: Cache Godot Engine downloads
+      id: cache-godot
+      uses: actions/cache@v5
+      with:
+        path: |
+          build/godot
+          build/._sc_
+          build/editor_data/export_templates/${{ inputs.godot_version }}.${{ inputs.godot_flavor }}
+        key: godot-${{ inputs.godot_version }}.${{ inputs.godot_flavor }}
+
+    - name: Download Godot Engine
+      id: download
+      if: steps.cache-godot.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        mkdir -p build && cd build
+
+        # Download Godot Engine itself
+        wget --progress=dot:giga  https://downloads.godotengine.org/?version=${{ inputs.godot_version }}&flavor=${{ inputs.godot_flavor }}&slug=linux.x86_64.zip&platform=linux.64 && \
+        unzip Godot_v${{ inputs.godot_version }}-${{ inputs.godot_flavor }}_linux.x86_64.zip && \
+        mv Godot_v${{ inputs.godot_version }}-${{ inputs.godot_flavor }}_linux.x86_64 godot
+
+        # Download export templates
+        mkdir -p editor_data/export_templates
+        wget --progress=dot:giga https://downloads.godotengine.org/?version=${{ inputs.godot_version }}&flavor=${{ inputs.godot_flavor }}&slug=export_templates.tpz&platform=templates && \
+        unzip Godot_v${{ inputs.godot_version }}-${{ inputs.godot_flavor }}_export_templates.tpz && \
+        mv templates editor_data/export_templates/${{ inputs.godot_version }}.${{ inputs.godot_flavor }}
+
+        # Tell Godot Engine to run in "self-contained" mode so it looks for
+        # templates here instead of in ~/.local/share/godot/
+        touch ._sc_
+
+    - name: Export web release
+      shell: bash
+      run: |
+        mkdir -v -p build/web && cd build
+
+        # Note that the export path can be confusing; it's relative to the
+        # Godot project path, NOT necessarily the current directory or Godot
+        # binary location
+        ./godot --headless --verbose --path ../ --export-release "Web" ./build/web/index.html
