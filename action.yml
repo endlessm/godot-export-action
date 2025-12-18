@@ -25,19 +25,22 @@ runs:
       id: download
       if: steps.cache-godot.outputs.cache-hit != 'true'
       shell: bash
+      env:
+        VERSION: ${{ inputs.godot_version }}
+        FLAVOR: ${{ inputs.godot_flavor }}
       run: |
         mkdir -p build && cd build
 
         # Download Godot Engine itself
-        wget --progress=dot:giga  https://downloads.godotengine.org/?version=${{ inputs.godot_version }}&flavor=${{ inputs.godot_flavor }}&slug=linux.x86_64.zip&platform=linux.64 && \
-        unzip Godot_v${{ inputs.godot_version }}-${{ inputs.godot_flavor }}_linux.x86_64.zip && \
-        mv Godot_v${{ inputs.godot_version }}-${{ inputs.godot_flavor }}_linux.x86_64 godot
+        wget --progress=dot:giga "https://downloads.godotengine.org/?version=${VERSION}&flavor=${FLAVOR}&slug=linux.x86_64.zip&platform=linux.64" && \
+        unzip "Godot_v${VERSION}-${FLAVOR}_linux.x86_64.zip" && \
+        mv "Godot_v${VERSION}-${FLAVOR}_linux.x86_64" godot
 
         # Download export templates
         mkdir -p editor_data/export_templates
-        wget --progress=dot:giga https://downloads.godotengine.org/?version=${{ inputs.godot_version }}&flavor=${{ inputs.godot_flavor }}&slug=export_templates.tpz&platform=templates && \
-        unzip Godot_v${{ inputs.godot_version }}-${{ inputs.godot_flavor }}_export_templates.tpz && \
-        mv templates editor_data/export_templates/${{ inputs.godot_version }}.${{ inputs.godot_flavor }}
+        wget --progress=dot:giga "https://downloads.godotengine.org/?version=${VERSION}&flavor=${FLAVOR}&slug=export_templates.tpz&platform=templates" && \
+        unzip "Godot_v${VERSION}-${FLAVOR}_export_templates.tpz" && \
+        mv templates "editor_data/export_templates/${VERSION}.${FLAVOR}"
 
         # Tell Godot Engine to run in "self-contained" mode so it looks for
         # templates here instead of in ~/.local/share/godot/
