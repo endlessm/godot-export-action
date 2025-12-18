@@ -29,7 +29,7 @@ runs:
         VERSION: ${{ inputs.godot_version }}
         FLAVOR: ${{ inputs.godot_flavor }}
       run: |
-        set -e
+        set -ex
         mkdir -p build && cd build
 
         # Download Godot Engine itself
