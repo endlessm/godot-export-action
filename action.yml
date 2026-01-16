@@ -55,11 +55,9 @@ runs:
       with:
         path: |
           .godot
-        key: ${{ runner.os }}-dotgodot-${{ inputs.godot_version }}.${{ inputs.godot_flavor }}-${{ github.sha }}
+        key: ${{ runner.os }}-dotgodot-${{ inputs.godot_version }}.${{ inputs.godot_flavor }}-${{ hashFiles('**/*.import') }}
         restore-keys: |
-          ${{ runner.os }}-dotgodot-${{ inputs.godot_version }}.${{ inputs.godot_flavor }}
-          ${{ runner.os }}-dotgodot-${{ inputs.godot_version }}
-          ${{ runner.os }}-dotgodot
+          ${{ runner.os }}-dotgodot-${{ inputs.godot_version }}.${{ inputs.godot_flavor }}-
 
     - name: Export web release
       shell: bash
@@ -76,4 +74,4 @@ runs:
       with:
         path: |
           .godot
-        key: ${{ runner.os }}-dotgodot-${{ inputs.godot_version }}.${{ inputs.godot_flavor }}-${{ github.sha }}
+        key: ${{ runner.os }}-dotgodot-${{ inputs.godot_version }}.${{ inputs.godot_flavor }}-${{ hashFiles('**/*.import') }}
