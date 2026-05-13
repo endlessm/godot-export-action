@@ -1,5 +1,5 @@
 name: Godot Export
-description: Export Godot project for the web
+description: Export Godot project with the given preset. The destination folder in the preset must exist before running this action.
 inputs:
   godot_version:
     description: Godot version to export the project with (e.g. 4.5.1)
@@ -8,6 +8,10 @@ inputs:
     description: Godot release flavor to export the project with (e.g. stable, beta1, rc2)
     required: false
     default: stable
+  export_preset:
+    description: The export preset to export
+    required: true
+
 runs:
   using: composite
   steps:
@@ -59,12 +63,7 @@ runs:
         restore-keys: |
           ${{ runner.os }}-dotgodot-${{ inputs.godot_version }}.${{ inputs.godot_flavor }}-
 
-    - name: Export web release
+    - name: Export
       shell: bash
       run: |
-        mkdir -v -p build/web && cd build
-
-        # Note that the export path can be confusing; it's relative to the
-        # Godot project path, NOT necessarily the current directory or Godot
-        # binary location
-        ./godot --headless --verbose --path ../ --export-release "Web" ./build/web/index.html
+        build/godot --headless --verbose --path . --export-release "${{ inputs.export_preset }}"
