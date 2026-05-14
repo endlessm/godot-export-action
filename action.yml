@@ -49,8 +49,8 @@ runs:
         # templates here instead of in ~/.local/share/godot/
         touch ._sc_
 
-    - name: Restore Godot import cache
-      uses: actions/cache/restore@v5
+    - name: Cache .godot directory
+      uses: actions/cache@v5
       if: ${{ github.event_name != 'release' }}
       with:
         path: |
@@ -68,10 +68,3 @@ runs:
         # Godot project path, NOT necessarily the current directory or Godot
         # binary location
         ./godot --headless --verbose --path ../ --export-release "Web" ./build/web/index.html
-
-    - name: Save Godot import cache
-      uses: actions/cache/save@v5
-      with:
-        path: |
-          .godot
-        key: ${{ runner.os }}-dotgodot-${{ inputs.godot_version }}.${{ inputs.godot_flavor }}-${{ hashFiles('**/*.import') }}
