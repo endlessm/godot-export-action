@@ -11,6 +11,7 @@ inputs:
   export_preset:
     description: The export preset to export
     required: true
+    default: Web
 
 runs:
   using: composite
@@ -66,4 +67,6 @@ runs:
     - name: Export
       shell: bash
       run: |
-        build/godot --headless --verbose --path . --export-release "${{ inputs.export_preset }}"
+        build/godot --headless --verbose --path . --export-release "${EXPORT_PRESET:?export_preset must be set}"
+      env:
+        EXPORT_PRESET: ${{ inputs.export_preset }}
