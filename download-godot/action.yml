@@ -1,0 +1,30 @@
+name: Download Godot Engine
+description: Download the Godot binary into build/ in self-contained mode.
+inputs:
+  godot_version:
+    description: Godot version to install (e.g. 4.5.1)
+    required: true
+  godot_flavor:
+    description: Godot release flavor to install (e.g. stable, beta1, rc2)
+    required: false
+    default: stable
+
+runs:
+  using: composite
+  steps:
+    - name: Cache Godot Engine download
+      id: cache-godot
+      uses: actions/cache@v6
+      with:
+        path: |
+          build/godot
+          build/._sc_
+        key: godot-engine-${{ inputs.godot_version }}.${{ inputs.godot_flavor }}
+
+    - name: Download Godot Engine
+      if: steps.cache-godot.outputs.cache-hit != 'true'
+      shell: bash
+      env:
+        VERSION: ${{ inputs.godot_version }}
+        FLAVOR: ${{ inputs.godot_flavor }}
+      run: bash "${GITHUB_ACTION_PATH}/download-godot.sh"

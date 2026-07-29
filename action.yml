@@ -16,43 +16,49 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Cache Godot Engine downloads
+    # Kept in sync by hand with install-godot/action.yml: a composite action
+    # cannot invoke another action in its own repository by relative path, so
+    # only download-godot.sh is shared.
+    - name: Cache Godot Engine download
       id: cache-godot
       uses: actions/cache@v6
       with:
         path: |
           build/godot
           build/._sc_
-          build/editor_data/export_templates/${{ inputs.godot_version }}.${{ inputs.godot_flavor }}
-        key: godot-${{ inputs.godot_version }}.${{ inputs.godot_flavor }}
+        key: godot-engine-${{ inputs.godot_version }}.${{ inputs.godot_flavor }}
 
     - name: Download Godot Engine
-      id: download
       if: steps.cache-godot.outputs.cache-hit != 'true'
+      shell: bash
+      env:
+        VERSION: ${{ inputs.godot_version }}
+        FLAVOR: ${{ inputs.godot_flavor }}
+      run: bash "${GITHUB_ACTION_PATH}/download-godot/download-godot.sh"
+
+    - name: Cache export templates download
+      id: cache-export-templates
+      uses: actions/cache@v6
+      with:
+        path: build/editor_data/export_templates/${{ inputs.godot_version }}.${{ inputs.godot_flavor }}
+        key: godot-export-templates-${{ inputs.godot_version }}.${{ inputs.godot_flavor }}
+
+    - name: Download export templates
+      if: steps.cache-export-templates.outputs.cache-hit != 'true'
       shell: bash
       env:
         VERSION: ${{ inputs.godot_version }}
         FLAVOR: ${{ inputs.godot_flavor }}
       run: |
         set -ex
+
         mkdir -p build && cd build
-
-        # Download Godot Engine itself
-        wget --progress=dot:giga -O Godot.zip "https://downloads.godotengine.org/?version=${VERSION}&flavor=${FLAVOR}&slug=linux.x86_64.zip&platform=linux.64"
-        unzip Godot.zip
-        rm Godot.zip
-        mv "Godot_v${VERSION}-${FLAVOR}_linux.x86_64" godot
-
-        # Download export templates
-        mkdir -p editor_data/export_templates
         wget --progress=dot:giga -O export_templates.tpz "https://downloads.godotengine.org/?version=${VERSION}&flavor=${FLAVOR}&slug=export_templates.tpz&platform=templates"
         unzip export_templates.tpz
         rm export_templates.tpz
-        mv templates "editor_data/export_templates/${VERSION}.${FLAVOR}"
 
-        # Tell Godot Engine to run in "self-contained" mode so it looks for
-        # templates here instead of in ~/.local/share/godot/
-        touch ._sc_
+        mkdir -p editor_data/export_templates
+        mv templates "editor_data/export_templates/${VERSION}.${FLAVOR}"
 
     - name: Cache .godot directory
       uses: actions/cache@v6
